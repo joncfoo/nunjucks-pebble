@@ -87,7 +87,7 @@ suite('Simple expressions', () => {
 
     test('Set expression with InlineIf', () => {
         const result = tr(`{% set x = 'foo' + (bar.nyaa if bar else 'derp') %}hello {{ x }}`)
-        result.should.eq(`{% set x = "foo" + (bar is not empty ? bar["nyaa"] : "derp") %}hello {{ x }}`)
+        result.should.eq(`{% set x = "foo" + (bar == true or bar is not empty ? bar["nyaa"] : "derp") %}hello {{ x }}`)
     })
 })
 
@@ -104,12 +104,12 @@ suite('If expressions', () => {
 
     test('Inline simple', () => {
         const result = tr(`hello{{' there ' + name if name }}!`)
-        result.should.eq(`hello{{ name is not empty ? " there " + name : "" }}!`)
+        result.should.eq(`hello{{ name == true or name is not empty ? " there " + name : "" }}!`)
     })
 
     test('Inline simple else', () => {
         const result = tr(`hello{{' there ' + name.first if name.x else 'stranger' }}!`)
-        result.should.eq(`hello{{ name["x"] is not empty ? " there " + name["first"] : "stranger" }}!`)
+        result.should.eq(`hello{{ name["x"] == true or name["x"] is not empty ? " there " + name["first"] : "stranger" }}!`)
     })
 })
 

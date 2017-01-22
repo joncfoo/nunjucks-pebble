@@ -127,7 +127,7 @@ const nodeHandler = {
 
         // if condition is testing for truthiness
         if (n.cond instanceof nodes.Symbol || n.cond instanceof nodes.LookupVal) {
-            cond = wrapExpr([cond, ' is not empty'], false)
+            cond = wrapExpr([cond, ' == true or ', cond, ' is not empty'], false)
         }
 
         return wrapExpr([cond, ' ? ', body, ' : ', else_], wrap)
