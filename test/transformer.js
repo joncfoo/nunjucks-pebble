@@ -7,7 +7,7 @@ const test = require('mocha').test
 
 const tr = require('../src/transform')
 
-suite('Simple Expressions', () => {
+suite('Simple expressions', () => {
 
     test('Symbol', () => {
         const result = tr('{{ foo }}')
@@ -40,17 +40,17 @@ suite('Simple Expressions', () => {
         result.should.eq('{{ 0 + 4 }} is 4')
     })
 
-    test('String + String', () => {
+    test('String + string', () => {
         const result = tr(`{{"foo bar" + "wat"}}`)
         result.should.eq('{{ "foo bar" + "wat" }}')
     })
 
-    test('String + Symbol', () => {
+    test('String + symbol', () => {
         const result = tr(`{{"foo bar" + nyaa}}`)
         result.should.eq('{{ "foo bar" + nyaa }}')
     })
 
-    test('Symbol + Number', () => {
+    test('Symbol + number', () => {
         const result = tr(`{{ nyaa + 4 * 2}}`)
         result.should.eq('{{ nyaa + 4 * 2 }}')
     })
@@ -60,7 +60,7 @@ suite('Simple Expressions', () => {
         result.should.eq('{{ "nyaa" | foo }}')
     })
 
-    test('Filter Symbol', () => {
+    test('Filter symbol', () => {
         const result = tr(`{{ nyaa | foo }}`)
         result.should.eq('{{ nyaa | foo }}')
     })
@@ -74,9 +74,24 @@ suite('Simple Expressions', () => {
         const result = tr(`{{ nyaa | join(",") | superduper('sweet') }}`)
         result.should.eq('{{ nyaa | join(",") | superduper("sweet") }}')
     })
+
+    test('Set expression', () => {
+        const result = tr(`{% set x = bar.nyaa %}hello {{ x }}`)
+        result.should.eq(`{% set x = bar["nyaa"] %}hello {{ x }}`)
+    })
+
+    test('Set expression with BinOp', () => {
+        const result = tr(`{% set x = 'foo' + bar.nyaa %}hello {{ x }}`)
+        result.should.eq(`{% set x = "foo" + bar["nyaa"] %}hello {{ x }}`)
+    })
+
+    test('Set expression with InlineIf', () => {
+        const result = tr(`{% set x = 'foo' + (bar.nyaa if bar else 'derp') %}hello {{ x }}`)
+        result.should.eq(`{% set x = "foo" + (bar is not empty ? bar["nyaa"] : "derp") %}hello {{ x }}`)
+    })
 })
 
-suite('If Expressions', () => {
+suite('If expressions', () => {
     test('Block simple', () => {
         const result = tr(`{% if foo %}{{ bar | baz('nya') }}{% endif %}`)
         result.should.eq(`{% if foo %}{{ bar | baz("nya") }}{% endif %}`)

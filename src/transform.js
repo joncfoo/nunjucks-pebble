@@ -120,7 +120,7 @@ const nodeHandler = {
                          wrapBlock(['endif'], true)])
     },
 
-    InlineIf(n) {
+    InlineIf(n, wrap) {
         let cond = transformer(n.cond, false)
         const body = transformer(n.body, false)
         const else_ = n.else_ ? transformer(n.else_, false) : '""'
@@ -130,7 +130,7 @@ const nodeHandler = {
             cond = wrapExpr([cond, ' is not empty'], false)
         }
 
-        return wrapExpr([cond, ' ? ', body, ' : ', else_], true)
+        return wrapExpr([cond, ' ? ', body, ' : ', else_], wrap)
     },
 
     Include(n) {
@@ -141,6 +141,19 @@ const nodeHandler = {
         }
 
         return wrapBlock(['include ', template], true)
+    },
+
+    Set(n) {
+        const value = transformer(n.value, false)
+        const targets = n.targets.map(t => transformer(t, false))
+
+        return wrapBlock(['set ', targets, ' = ', value], true)
+    },
+
+    Group(n) {
+        const expr = n.children.map(c => transformer(c, false))
+
+        return new Wrap(expr, '(', ')', true)
     }
 }
 
