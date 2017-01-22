@@ -61,7 +61,7 @@ const handler = {
 
         let cond = flatten(transform(n.cond, true)).join('')
         const body = flatten(transform(n.body, false)).join('')
-        const else_ = flatten(transform(n.else_)).join('') || '""'
+        const else_ = flatten(transform(n.else_, false)).join('') || '""'
 
         if (n.cond instanceof nodes.Symbol) {
             // could be checking for either non-empty or true
@@ -119,8 +119,12 @@ const handler = {
             return `{{ ${args} | ${name} }}`
     },
 
-    Group(ns) {
-        return ['(', ns.children.map(c => transform(c, true)), ')']
+    Group(ns, unwrap) {
+        console.log('group ==>', ns.children.length)
+//        if (unwrap)
+        return ns.children.map(c => transform(c, unwrap))
+//        else
+//            return ['(', ns.children.map(c => transform(c, unwrap)), ')']
     },
 
     Include(n) {
@@ -201,6 +205,8 @@ function transform(node, unwrap) {
 for (const arg of args) {
     const contents = fs.readFileSync(arg).toString()
     const ast = nunjucks.parser.parse(contents)
+
+    nodes.printNodes(ast)
 
     const buf = flatten(transform(ast))
     console.log(buf.join(''))
