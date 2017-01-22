@@ -76,7 +76,7 @@ suite('Simple Expressions', () => {
     })
 })
 
-suite('If Block Expression', () => {
+suite('If Expressions', () => {
     test('Block simple', () => {
         const result = tr(`{% if foo %}{{ bar | baz('nya') }}{% endif %}`)
         result.should.eq(`{% if foo %}{{ bar | baz("nya") }}{% endif %}`)
@@ -85,5 +85,22 @@ suite('If Block Expression', () => {
     test('Block simple else', () => {
         const result = tr(`{% if foo %}{{ bar | baz('nya') }}{% else %}foo {{ ack }} bar{% endif %}`)
         result.should.eq(`{% if foo %}{{ bar | baz("nya") }}{% else %}foo {{ ack }} bar{% endif %}`)
+    })
+
+    test('Inline simple', () => {
+        const result = tr(`hello{{' there ' + name if name }}!`)
+        result.should.eq(`hello{{ name is not empty ? " there " + name : "" }}!`)
+    })
+
+    test('Inline simple else', () => {
+        const result = tr(`hello{{' there ' + name.first if name.x else 'stranger' }}!`)
+        result.should.eq(`hello{{ name["x"] is not empty ? " there " + name["first"] : "stranger" }}!`)
+    })
+})
+
+suite('Include', () => {
+    test('Include', () => {
+        const result = tr(`hi {% include './foo.html' %}`)
+        result.should.eq('hi {% include "foo.html" %}')
     })
 })

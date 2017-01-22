@@ -21,7 +21,7 @@ function nprint(node, spacing = 0) {
     else if (node instanceof nodes.Node) {
         console.error(spaces, node.typename, node.fields)
         for (const f of node.fields) {
-            nprint(node[f], spaces + 2)
+            nprint(node[f], spacing + 2)
         }
     }
 }
@@ -82,8 +82,8 @@ const nodeHandler = {
         return wrapExpr([target, '[', val, ']'], wrap)
     },
 
-    Literal(n, wrap) {
-        return wrapLit(n.value, n.value.toFixed ? false : wrap)
+    Literal(n) {
+        return wrapLit(n.value, n.value.toFixed ? false : true)
     },
 
     BinOp(n, wrap) {
@@ -93,8 +93,12 @@ const nodeHandler = {
     },
 
     Filter(n, wrap) {
-        const name = n.name.value
+        let name = n.name.value
         const args = flatten(transformer(n.args))
+
+        if (name === 'safe')
+            name = 'raw'
+
         if (args.length > 1)
             return wrapExpr([args[0], ' | ', name, '(', args.slice(1).join(',') , ')'], wrap)
         else
@@ -115,6 +119,29 @@ const nodeHandler = {
                          (else_ ? [wrapBlock('else', true), else_] : ''),
                          wrapBlock(['endif'], true)])
     },
+
+    InlineIf(n) {
+        let cond = transformer(n.cond, false)
+        const body = transformer(n.body, false)
+        const else_ = n.else_ ? transformer(n.else_, false) : '""'
+
+        // if condition is testing for truthiness
+        if (n.cond instanceof nodes.Symbol || n.cond instanceof nodes.LookupVal) {
+            cond = wrapExpr([cond, ' is not empty'], false)
+        }
+
+        return wrapExpr([cond, ' ? ', body, ' : ', else_], true)
+    },
+
+    Include(n) {
+        const template = flatten(transformer(n.template, false))[0]
+
+        if (template.value.startsWith('./')) {
+            template.value = template.value.substring(2)
+        }
+
+        return wrapBlock(['include ', template], true)
+    }
 }
 
 Object.keys(BinOps).forEach(k => nodeHandler[k] = nodeHandler.BinOp)
