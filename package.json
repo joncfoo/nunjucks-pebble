@@ -1,0 +1,22 @@
+{
+    "name": "nunjucks-pebble",
+    "version": "1.0.0",
+    "description": "Nunjucks template to Pebble template converter",
+    "engines": {
+        "node": ">=6.9.4"
+    },
+    "main": "src/index.js",
+    "bin": {
+        "nunjucks-pebble": "src/index.js"
+    },
+    "scripts": {
+    },
+    "keywords": [
+        "nunjucks"
+    ],
+    "author": "Jonathan Curran",
+    "license": "ISC",
+    "dependencies": {
+        "nunjucks": "^3.0.0"
+    }
+}

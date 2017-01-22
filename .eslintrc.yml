@@ -1,0 +1,14 @@
+extends:
+  - eslint:recommended
+  - plugin:node/recommended
+plugins:
+  - standard
+  - node
+  - promise
+env:
+  node: true
+parserOptions:
+  ecmaVersion: 6
+rules:
+  no-console: 0
+  no-process-exit: 0
