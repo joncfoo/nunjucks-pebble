@@ -21,8 +21,8 @@ function nprint(node, spacing = 0) {
     else if (node instanceof nodes.Node) {
         console.error(spaces, node.typename, node.fields)
         for (const f of node.fields) {
-            console.error(`${spaces}${spaces}${f}=`)
-            nprint(node[f], spacing + 2)
+            console.error(`${spaces}  ${f}=`)
+            nprint(node[f], spacing + 4)
         }
     }
 }
@@ -50,14 +50,20 @@ const wrapLit = (v, w) => new Wrap(v, '"', '"', w)
 
 const BinOps = {
     'In': ' in ',
-    'Or': ' or ',
-    'And': ' and ',
     'Add': ' + ',
     'Sub': ' - ',
     'Mul': ' * ',
     'Div': ' / ',
     'Mod': ' % ',
 
+}
+
+function truthy(cond, negate = false) {
+    if (negate)
+        // note we are re-writing the expression by avoid the `not` operator
+        return wrapExpr(['( ', cond, ' == false or ', cond, ' is empty )'], false)
+    else
+        return wrapExpr(['( ', cond, ' == true or ', cond, ' is not empty )'], false)
 }
 
 const nodeHandler = {
@@ -129,7 +135,7 @@ const nodeHandler = {
 
         // if condition is testing for truthiness
         if (n.cond instanceof nodes.Symbol || n.cond instanceof nodes.LookupVal) {
-            cond = wrapExpr([cond, ' == true or ', cond, ' is not empty'], false)
+            cond = truthy(cond)
         }
 
         return wrapExpr([cond, ' ? ', body, ' : ', else_], wrap)
@@ -171,6 +177,34 @@ const nodeHandler = {
         const expr = n.children.map(c => transformer(c, false))
 
         return wrapExpr(['(', expr, ')'], wrap)
+    },
+
+    Not(n) {
+        const target = transformer(n.target, false)
+
+        return truthy(target, true)
+    },
+
+    Or(n) {
+        let left = transformer(n.left, false)
+        let right = transformer(n.right, false)
+
+        if (n.left instanceof nodes.Symbol || n.left instanceof nodes.LookupVal) {
+            left = truthy(left)
+        }
+
+        return [left, ' or ', right]
+    },
+
+    And(n) {
+        let left = transformer(n.left, false)
+        let right = transformer(n.right, false)
+
+        if (n.left instanceof nodes.Symbol || n.left instanceof nodes.LookupVal) {
+            left = truthy(left)
+        }
+
+        return [left, ' and ', right]
     }
 }
 

@@ -87,12 +87,12 @@ suite('Simple expressions', () => {
 
     test('Set expression with InlineIf', () => {
         const result = tr(`{% set x = 'foo' + (bar.nyaa if bar else 'derp') %}hello {{ x }}`)
-        result.should.eq(`{% set x = "foo" + (bar == true or bar is not empty ? bar["nyaa"] : "derp") %}hello {{ x }}`)
+        result.should.eq(`{% set x = "foo" + (( bar == true or bar is not empty ) ? bar["nyaa"] : "derp") %}hello {{ x }}`)
     })
 
     test('Group', () => {
         const result = tr(`{{ ('foo' + bar if bar) }}`)
-        result.should.eq('{{ (bar == true or bar is not empty ? "foo" + bar : "") }}')
+        result.should.eq('{{ (( bar == true or bar is not empty ) ? "foo" + bar : "") }}')
     })
 })
 
@@ -109,12 +109,12 @@ suite('If expressions', () => {
 
     test('Inline simple', () => {
         const result = tr(`hello{{' there ' + name if name }}!`)
-        result.should.eq(`hello{{ name == true or name is not empty ? " there " + name : "" }}!`)
+        result.should.eq(`hello{{ ( name == true or name is not empty ) ? " there " + name : "" }}!`)
     })
 
     test('Inline simple else', () => {
         const result = tr(`hello{{' there ' + name.first if name.x else 'stranger' }}!`)
-        result.should.eq(`hello{{ name["x"] == true or name["x"] is not empty ? " there " + name["first"] : "stranger" }}!`)
+        result.should.eq(`hello{{ ( name["x"] == true or name["x"] is not empty ) ? " there " + name["first"] : "stranger" }}!`)
     })
 })
 
@@ -129,5 +129,22 @@ suite('For block', () => {
     test('Block', () => {
         const result = tr(`{% for name in people.names %}Hi {{ name}}{% endfor %}`)
         result.should.eq(`{% for name in people["names"] %}Hi {{ name }}{% endfor %}`)
+    })
+})
+
+suite('Operators', () => {
+    test('Not', () => {
+        const result = tr(`{% if not bar %}hi{% endif %}`)
+        result.should.eq(`{% if ( bar == false or bar is empty ) %}hi{% endif %}`)
+    })
+
+    test('And', () => {
+        const result = tr(`{{ 'nyaa' if foo and not bar }}`)
+        result.should.eq(`{{ ( foo == true or foo is not empty ) and ( bar == false or bar is empty ) ? "nyaa" : "" }}`)
+    })
+
+    test('Or', () => {
+        const result = tr(`{{ 'nyaa' if foo or not bar }}`)
+        result.should.eq(`{{ ( foo == true or foo is not empty ) or ( bar == false or bar is empty ) ? "nyaa" : "" }}`)
     })
 })
