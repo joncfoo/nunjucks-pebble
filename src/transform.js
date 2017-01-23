@@ -21,6 +21,7 @@ function nprint(node, spacing = 0) {
     else if (node instanceof nodes.Node) {
         console.error(spaces, node.typename, node.fields)
         for (const f of node.fields) {
+            console.error(`${spaces}${spaces}${f}=`)
             nprint(node[f], spacing + 2)
         }
     }
@@ -117,7 +118,8 @@ const nodeHandler = {
         return wrapExpr([wrapBlock(['if ', cond], true),
                          body,
                          (else_ ? [wrapBlock('else', true), else_] : ''),
-                         wrapBlock(['endif'], true)])
+                         wrapBlock(['endif'], true)],
+                       false)
     },
 
     InlineIf(n, wrap) {
@@ -131,6 +133,21 @@ const nodeHandler = {
         }
 
         return wrapExpr([cond, ' ? ', body, ' : ', else_], wrap)
+    },
+
+    For(n) {
+        const array = transformer(n.arr, false)
+        const name = transformer(n.name, false)
+        const body = transformer(n.body, false)
+
+        if (n.else_) {
+            throw new Error('In For block, else_ is not handled')
+        }
+
+        return wrapExpr([wrapBlock(['for ', name, ' in ', array], true),
+                         body,
+                         wrapBlock(['endfor'], true)],
+                        false)
     },
 
     Include(n) {
@@ -150,10 +167,10 @@ const nodeHandler = {
         return wrapBlock(['set ', targets, ' = ', value], true)
     },
 
-    Group(n) {
+    Group(n, wrap) {
         const expr = n.children.map(c => transformer(c, false))
 
-        return new Wrap(expr, '(', ')', true)
+        return wrapExpr(['(', expr, ')'], wrap)
     }
 }
 

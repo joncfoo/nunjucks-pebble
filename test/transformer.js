@@ -89,6 +89,11 @@ suite('Simple expressions', () => {
         const result = tr(`{% set x = 'foo' + (bar.nyaa if bar else 'derp') %}hello {{ x }}`)
         result.should.eq(`{% set x = "foo" + (bar == true or bar is not empty ? bar["nyaa"] : "derp") %}hello {{ x }}`)
     })
+
+    test('Group', () => {
+        const result = tr(`{{ ('foo' + bar if bar) }}`)
+        result.should.eq('{{ (bar == true or bar is not empty ? "foo" + bar : "") }}')
+    })
 })
 
 suite('If expressions', () => {
@@ -117,5 +122,12 @@ suite('Include', () => {
     test('Include', () => {
         const result = tr(`hi {% include './foo.html' %}`)
         result.should.eq('hi {% include "foo.html" %}')
+    })
+})
+
+suite('For block', () => {
+    test('Block', () => {
+        const result = tr(`{% for name in people.names %}Hi {{ name}}{% endfor %}`)
+        result.should.eq(`{% for name in people["names"] %}Hi {{ name }}{% endfor %}`)
     })
 })
