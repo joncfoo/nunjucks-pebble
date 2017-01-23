@@ -61,9 +61,9 @@ const BinOps = {
 function truthy(cond, negate = false) {
     if (negate)
         // note we are re-writing the expression by avoid the `not` operator
-        return wrapExpr(['( ', cond, ' == false or ', cond, ' is empty )'], false)
+        return ['( ', cond, ' == false or ', cond, ' is empty )']
     else
-        return wrapExpr(['( ', cond, ' == true or ', cond, ' is not empty )'], false)
+        return ['( ', cond, ' == true or ', cond, ' is not empty )']
 }
 
 const nodeHandler = {
@@ -121,11 +121,11 @@ const nodeHandler = {
         const body = transformer(n.body, true)
         const else_ = n.else_ ? transformer(n.else_, false) : ''
 
-        return wrapExpr([wrapBlock(['if ', cond], true),
-                         body,
-                         (else_ ? [wrapBlock('else', true), else_] : ''),
-                         wrapBlock(['endif'], true)],
-                       false)
+        return [wrapBlock(['if ', cond], true),
+                body,
+                (else_ ? [wrapBlock('else', true), else_] : ''),
+                wrapBlock(['endif'], true)
+               ]
     },
 
     InlineIf(n, wrap) {
@@ -150,10 +150,10 @@ const nodeHandler = {
             throw new Error('In For block, else_ is not handled')
         }
 
-        return wrapExpr([wrapBlock(['for ', name, ' in ', array], true),
-                         body,
-                         wrapBlock(['endfor'], true)],
-                        false)
+        return [wrapBlock(['for ', name, ' in ', array], true),
+                body,
+                wrapBlock(['endfor'], true)
+               ]
     },
 
     Include(n) {
