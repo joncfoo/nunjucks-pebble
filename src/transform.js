@@ -68,7 +68,7 @@ function truthy(cond, negate = false) {
 
 const nodeHandler = {
     Root(n) {
-        return n.children.map(c => transformer(c, false))
+        return n.children.map(transformer)
     },
 
     Output(n) {
@@ -84,7 +84,7 @@ const nodeHandler = {
     },
 
     LookupVal(n, wrap) {
-        const target = transformer(n.target, false)
+        const target = transformer(n.target)
         const val = transformer(n.val, n.val instanceof nodes.Literal)
         return wrapExpr([target, '[', val, ']'], wrap)
     },
@@ -117,9 +117,9 @@ const nodeHandler = {
     },
 
     If(n) {
-        const cond = transformer(n.cond, false)
+        const cond = transformer(n.cond)
         const body = transformer(n.body, true)
-        const else_ = n.else_ ? transformer(n.else_, false) : ''
+        const else_ = n.else_ ? transformer(n.else_) : ''
 
         return [wrapBlock(['if ', cond], true),
                 body,
@@ -129,9 +129,9 @@ const nodeHandler = {
     },
 
     InlineIf(n, wrap) {
-        let cond = transformer(n.cond, false)
-        const body = transformer(n.body, false)
-        const else_ = n.else_ ? transformer(n.else_, false) : '""'
+        let cond = transformer(n.cond)
+        const body = transformer(n.body)
+        const else_ = n.else_ ? transformer(n.else_) : '""'
 
         // if condition is testing for truthiness
         if (n.cond instanceof nodes.Symbol || n.cond instanceof nodes.LookupVal) {
@@ -142,9 +142,9 @@ const nodeHandler = {
     },
 
     For(n) {
-        const array = transformer(n.arr, false)
-        const name = transformer(n.name, false)
-        const body = transformer(n.body, false)
+        const array = transformer(n.arr)
+        const name = transformer(n.name)
+        const body = transformer(n.body)
 
         if (n.else_) {
             throw new Error('In For block, else_ is not handled')
@@ -157,7 +157,7 @@ const nodeHandler = {
     },
 
     Include(n) {
-        const template = flatten(transformer(n.template, false))[0]
+        const template = flatten(transformer(n.template))[0]
 
         if (template.value.startsWith('./')) {
             template.value = template.value.substring(2)
@@ -167,20 +167,20 @@ const nodeHandler = {
     },
 
     Set(n) {
-        const value = transformer(n.value, false)
-        const targets = n.targets.map(t => transformer(t, false))
+        const value = transformer(n.value)
+        const targets = n.targets.map(transformer)
 
         return wrapBlock(['set ', targets, ' = ', value], true)
     },
 
     Group(n, wrap) {
-        const expr = n.children.map(c => transformer(c, false))
+        const expr = n.children.map(transformer)
 
         return wrapExpr(['(', expr, ')'], wrap)
     },
 
     Dict(n) {
-        const expr = flatten(n.children.map(c => transformer(c, false)))
+        const expr = flatten(n.children.map(transformer))
         const rewritten = []
         for (let i = 0, len = expr.length; i < len; i++) {
             rewritten.push(expr[i])
@@ -191,48 +191,68 @@ const nodeHandler = {
     },
 
     Pair(n) {
-        const key = transformer(n.key, false)
-        const value = transformer(n.value, false)
+        const key = transformer(n.key)
+        const value = transformer(n.value)
         return [`"${key}"`, ': ', value]
     },
 
+    FunCall(n) {
+        const name = transformer(n.name)
+        const args = flatten(transformer(n.args))
+        const rewritten = []
+        for (let i = 0, len = args.length; i < len; i++) {
+            rewritten.push(args[i])
+            if (i+1 < len)
+                rewritten.push(', ')
+        }
+        return [name, '(', rewritten, ')']
+    },
+
     Not(n) {
-        const target = transformer(n.target, false)
+        const target = transformer(n.target)
 
         return truthy(target, true)
     },
 
     Or(n) {
-        let left = transformer(n.left, false)
-        let right = transformer(n.right, false)
+        let left = transformer(n.left)
+        let right = transformer(n.right)
 
         if (n.left instanceof nodes.Symbol || n.left instanceof nodes.LookupVal) {
             left = truthy(left)
+        }
+
+        if (n.right instanceof nodes.Symbol || n.right instanceof nodes.LookupVal) {
+            right = truthy(right)
         }
 
         return [left, ' or ', right]
     },
 
     And(n) {
-        let left = transformer(n.left, false)
-        let right = transformer(n.right, false)
+        let left = transformer(n.left)
+        let right = transformer(n.right)
 
         if (n.left instanceof nodes.Symbol || n.left instanceof nodes.LookupVal) {
             left = truthy(left)
+        }
+
+        if (n.right instanceof nodes.Symbol || n.right instanceof nodes.LookupVal) {
+            right = truthy(right)
         }
 
         return [left, ' and ', right]
     },
 
     Compare(n) {
-        const expr = transformer(n.expr, false)
-        const opExpr = n.ops.map(c => transformer(c, false))
+        const expr = transformer(n.expr)
+        const opExpr = n.ops.map(transformer)
 
         return [expr, opExpr]
     },
 
     CompareOperand(n) {
-        const expr = transformer(n.expr, false)
+        const expr = transformer(n.expr)
         let type = n.type
 
         if (type === '===')

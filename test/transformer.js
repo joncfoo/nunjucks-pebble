@@ -139,6 +139,13 @@ suite('Dictionary', () => {
     })
 })
 
+suite('Function call', () => {
+    test('Function call', () => {
+        const result = tr(`{% for x in pyow('dodge', 1 + 2, cat) %}{{ x }}{% endfor %}`)
+        result.should.eq(`{% for x in pyow("dodge", 1 + 2, cat) %}{{ x }}{% endfor %}`)
+    })
+})
+
 suite('Operators', () => {
     test('Not', () => {
         const result = tr(`{% if not bar %}hi{% endif %}`)
