@@ -147,4 +147,9 @@ suite('Operators', () => {
         const result = tr(`{{ 'nyaa' if foo or not bar }}`)
         result.should.eq(`{{ ( foo == true or foo is not empty ) or ( bar == false or bar is empty ) ? "nyaa" : "" }}`)
     })
+
+    test('Compare', () => {
+        const result = tr(`{% if foo === 'bar' %}meow{% endif %}`)
+        result.should.eq(`{% if foo == "bar" %}meow{% endif %}`)
+    })
 })

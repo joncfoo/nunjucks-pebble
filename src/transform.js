@@ -205,6 +205,25 @@ const nodeHandler = {
         }
 
         return [left, ' and ', right]
+    },
+
+    Compare(n) {
+        const expr = transformer(n.expr, false)
+        const opExpr = n.ops.map(c => transformer(c, false))
+
+        return [expr, opExpr]
+    },
+
+    CompareOperand(n) {
+        const expr = transformer(n.expr, false)
+        let type = n.type
+
+        if (type === '===')
+            type = '=='
+        else if (type === '!==')
+            type = '!='
+
+        return [' ', type, ' ', expr]
     }
 }
 
