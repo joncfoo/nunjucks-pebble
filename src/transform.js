@@ -179,6 +179,23 @@ const nodeHandler = {
         return wrapExpr(['(', expr, ')'], wrap)
     },
 
+    Dict(n) {
+        const expr = flatten(n.children.map(c => transformer(c, false)))
+        const rewritten = []
+        for (let i = 0, len = expr.length; i < len; i++) {
+            rewritten.push(expr[i])
+            if ((i + 1) % 3 === 0 && i + 1 < len)
+                rewritten.push(', ')
+        }
+        return new Wrap(rewritten, '{', '}', true)
+    },
+
+    Pair(n) {
+        const key = transformer(n.key, false)
+        const value = transformer(n.value, false)
+        return [`"${key}"`, ': ', value]
+    },
+
     Not(n) {
         const target = transformer(n.target, false)
 

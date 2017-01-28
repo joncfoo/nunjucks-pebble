@@ -132,6 +132,13 @@ suite('For block', () => {
     })
 })
 
+suite('Dictionary', () => {
+    test('Dictionary', () => {
+        const result = tr(`{% set x = {foo: 'bar', kitty: meow} %}{{ x.foo }}`)
+        result.should.eq(`{% set x = {"foo": "bar", "kitty": meow} %}{{ x["foo"] }}`)
+    })
+})
+
 suite('Operators', () => {
     test('Not', () => {
         const result = tr(`{% if not bar %}hi{% endif %}`)
